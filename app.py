@@ -1,32 +1,34 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
 import joblib
-
-# Charger le modèle et le vectorizer
-model = joblib.load("language_model.pkl")
-vectorizer = joblib.load("vectorizer.pkl")
+import os
+from flask import Flask, request, jsonify
+import pandas as pd
+import kagglehub as kg
 
 app = Flask(__name__)
-CORS(app)
+
+path = kg.dataset_download("basilb2s/language-detection")
+df = pd.read_csv(os.path.join(path, "Language Detection.csv"))
+
+# Charger le dictionnaire, modèle et le vectoriseur sauvegardés
+model = joblib.load("model.pkl")
+vectorizer = joblib.load("vectorizer.pkl")
+language_dict = joblib.load("language_dict.pkl")
 
 
-# Fonction pour prédire la langue
-def predict_language(text):
-    X_input = vectorizer.transform([text])  # Transformer le texte en vecteur TF-IDF
-    prediction = model.predict(X_input)  # Faire la prédiction
-    return prediction[0]  # Retourner la langue prédite
-
-
+# Route pour prédire la langue
 @app.route("/predict", methods=["POST"])
 def predict():
-    data = request.json
-    text = data.get("text", "")
+    # Récupérer le texte depuis la requête
+    data = request.get_json(force=True)
+    text = data["text"]
 
-    if not text:
-        return jsonify({"error": "No text provided"}), 400
+    # Vectoriser le texte et faire la prédiction
+    text_vectorized = vectorizer.transform([text])
+    prediction = model.predict(text_vectorized)
+    prediction_language = language_dict.get(prediction[0], "Langue inconnue")
 
-    predicted_language = predict_language(text)
-    return jsonify({"language": predicted_language})
+    # Retourner la prédiction
+    return jsonify({"language": prediction_language})
 
 
 if __name__ == "__main__":

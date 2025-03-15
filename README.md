@@ -62,7 +62,7 @@ curl -X POST http://127.0.0.1:5000/predict \
 - `app.py` : Code principal de l'API Flask
 - `train.py` : Script d'entraînement du modèle
 - `requirements.txt` : Liste des dépendances
-- `language_model.pkl` & `vectorizer.pkl` : Modèle et vectorizer sauvegardés
+- `model.pkl` & `vectorizer.pkl` : Modèle et vectorizer sauvegardés
 
 ## 📜 Licence
 Ce projet est sous licence **MIT**.
